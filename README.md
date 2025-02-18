@@ -1,5 +1,6 @@
-# ChronoWeave
-# 🚀 Time Travel Simulation Platform
+# ChronoWeave: Interactive Historical Tapestry
+
+## 🚀 Time Travel Simulation Platform
 
 *Because who needs a DeLorean when you've got React?*
 
