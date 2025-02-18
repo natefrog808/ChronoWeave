@@ -78,16 +78,27 @@ Visit `http://localhost:3000` - Your personal time machine awaits!
 ## 🏗 Project Structure
 
 ```
-src/
-├── components/
-│   ├── timeline/
-│   │   ├── AdvancedTimeline.tsx   # Main timeline component
-│   │   ├── TimelineEvents.ts      # Historical event data
-│   │   ├── TimelineTypes.ts       # TypeScript interfaces
-│   │   └── TimelineUtils.ts       # Helper functions
-│   └── ui/                        # shadcn/ui components
-└── app/
-    └── page.tsx                   # Main page component
+chronoweave/
+├── src/
+│   ├── app/
+│   │   ├── page.tsx               # Main page file
+│   │   ├── layout.tsx             # Root layout file
+│   │   └── globals.css            # Global styles
+│   ├── components/
+│   │   ├── ui/                    # shadcn/ui components
+│   │   │   └── card.tsx
+│   │   ├── ChronoWeaveLogo.tsx   # Logo component
+│   │   └── timeline/
+│   │       └── AdvancedTimeline.tsx
+│   ├── types/
+│   │   └── timeline.ts           # TypeScript interfaces
+│   ├── data/
+│   │   └── timelineData.ts       # Historical events data
+│   └── utils/
+│       └── timelineUtils.ts      # Utility functions
+├── tailwind.config.js
+├── package.json
+└── README.md
 ```
 
 ## 🧪 Key Components
