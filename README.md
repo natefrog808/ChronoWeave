@@ -1,9 +1,5 @@
 # 🌟 ChronoWeave: Time Travel Simulation Platform
 
-<div align="center">
-  <img src="assets/chronoweave-logo.gif" alt="ChronoWeave Logo" width="400" />
-</div>
-
 *Because who needs a DeLorean when you've got React and TypeScript?*
 
 ## 🚀 Overview
