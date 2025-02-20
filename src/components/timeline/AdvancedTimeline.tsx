@@ -1,38 +1,25 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
-
-interface HistoricalEvent {
-  id: number;
-  year: number;
-  event: string;
-  description: string;
-  impact: Record<string, number>;
-  effects?: number[];
-  causedBy?: number[];
-  category: string;
-}
-
-interface TimelineState {
-  currentYear: number;
-  effects: Record<string, number>;
-  timelineEvents: HistoricalEvent[];
-  branchId: string; // For tracking alternate timelines
-}
-
-interface Category {
-  id: string;
-  label: string;
-  color: string;
-}
-
-interface ImpactType {
-  id: string;
-  label: string;
-  color: string;
-}
+// Save as: src/components/timeline/AdvancedTimeline.tsx
+import React, { useState, useMemo, useCallback } from 'react';
+import { cn } from '@/lib/utils';
+import { EffectsPanel } from './EffectsPanel';
+import { TimelineConnections } from './TimelineConnections';
+import { TimelineLegend } from './TimelineLegend';
+import {
+  HistoricalEvent,
+  Category,
+  ImpactType,
+  TimelineConnection,
+  TimelineEffects,
+} from '@/types/timeline';
 
 // Custom hook for timeline simulation
 const useTimelineSimulation = (initialEvents: HistoricalEvent[], branchId: string) => {
-  const [state, setState] = useState<TimelineState>({
+  const [state, setState] = useState<{
+    currentYear: number;
+    effects: TimelineEffects;
+    timelineEvents: HistoricalEvent[];
+    branchId: string;
+  }>({
     currentYear: 1800,
     effects: { economy: 100, society: 100, technology: 100, education: 100, health: 100 },
     timelineEvents: initialEvents,
@@ -48,13 +35,12 @@ const useTimelineSimulation = (initialEvents: HistoricalEvent[], branchId: strin
         }
       });
 
-      // Ripple effects with decay
       if (event.effects) {
         event.effects.forEach((effectId) => {
           const nextEvent = prev.timelineEvents.find((e) => e.id === effectId);
           if (nextEvent && nextEvent.year > event.year) {
             Object.entries(nextEvent.impact).forEach(([metric, value]) => {
-              const decay = Math.exp(-(nextEvent.year - event.year) / 20); // Exponential decay over 20 years
+              const decay = Math.exp(-(nextEvent.year - event.year) / 20);
               newEffects[metric] += value * decay;
             });
           }
@@ -64,11 +50,14 @@ const useTimelineSimulation = (initialEvents: HistoricalEvent[], branchId: strin
     });
   }, []);
 
-  const setCurrentYear = useCallback((year: number) => {
-    setState((prev) => ({ ...prev, currentYear: year }));
-    const event = state.timelineEvents.find((e) => e.year === year);
-    if (event) propagateEffects(event);
-  }, [propagateEffects, state.timelineEvents]);
+  const setCurrentYear = useCallback(
+    (year: number) => {
+      setState((prev) => ({ ...prev, currentYear: year }));
+      const event = state.timelineEvents.find((e) => e.year === year);
+      if (event) propagateEffects(event);
+    },
+    [propagateEffects, state.timelineEvents]
+  );
 
   return { ...state, setCurrentYear, setState };
 };
@@ -105,88 +94,88 @@ const AdvancedTimeline: React.FC = () => {
       {
         id: 1,
         year: 1800,
-        event: "Industrial Revolution Peak",
-        description: "Steam power and mechanized manufacturing transform society",
+        event: 'Industrial Revolution Peak',
+        description: 'Steam power and mechanized manufacturing transform society',
         impact: { economy: 30, technology: 40, society: -20 },
         effects: [2, 4],
-        category: "technological",
+        category: 'technological',
       },
       {
         id: 2,
         year: 1807,
-        event: "Abolition of Slave Trade",
-        description: "British Parliament passes the Slave Trade Act",
+        event: 'Abolition of Slave Trade',
+        description: 'British Parliament passes the Slave Trade Act',
         impact: { society: 50, economy: -10 },
         effects: [5],
         causedBy: [1],
-        category: "social",
+        category: 'social',
       },
       {
         id: 3,
         year: 1815,
-        event: "Battle of Waterloo",
+        event: 'Battle of Waterloo',
         description: "Napoleon's final defeat reshapes European politics",
         impact: { society: 20, economy: -15 },
         effects: [],
-        category: "political",
+        category: 'political',
       },
       {
         id: 4,
         year: 1820,
-        event: "Textile Industry Boom",
-        description: "Mass production of textiles accelerates urbanization",
+        event: 'Textile Industry Boom',
+        description: 'Mass production of textiles accelerates urbanization',
         impact: { economy: 25, society: 10, technology: 15 },
         effects: [],
         causedBy: [1],
-        category: "economic",
+        category: 'economic',
       },
       {
         id: 5,
         year: 1830,
-        event: "Public Education Reform",
-        description: "Education becomes more accessible due to societal shifts",
+        event: 'Public Education Reform',
+        description: 'Education becomes more accessible due to societal shifts',
         impact: { education: 30, society: 15 },
         effects: [],
         causedBy: [2],
-        category: "social",
+        category: 'social',
       },
     ],
     []
   );
 
-  const [activeBranch, setActiveBranch] = useState("main");
-  const [branches, setBranches] = useState<Map<string, HistoricalEvent[]>>(new Map([["main", historicalEvents]]));
-  
-  const { currentYear, effects, setCurrentYear, setState } = useTimelineSimulation(
+  const [activeBranch, setActiveBranch] = useState('main');
+  const [branches, setBranches] = useState<Map<string, HistoricalEvent[]>>(
+    new Map([['main', historicalEvents]])
+  );
+  const { currentYear, effects, setCurrentYear } = useTimelineSimulation(
     branches.get(activeBranch) || historicalEvents,
     activeBranch
   );
-  
   const [hoveredEvent, setHoveredEvent] = useState<HistoricalEvent | null>(null);
-  const [highlightedConnections, setHighlightedConnections] = useState<
-    { from: number; to: number; type: string }[]
-  >([]);
+  const [highlightedConnections, setHighlightedConnections] = useState<TimelineConnection[]>([]);
   const [filterCategory, setFilterCategory] = useState<string | null>(null);
   const [filterImpact, setFilterImpact] = useState<string | null>(null);
 
   const categories: Category[] = [
-    { id: "technological", label: "Technological", color: "bg-blue-500" },
-    { id: "social", label: "Social", color: "bg-green-500" },
-    { id: "political", label: "Political", color: "bg-purple-500" },
-    { id: "economic", label: "Economic", color: "bg-amber-500" },
+    { id: 'technological', label: 'Technological', color: 'bg-blue-500' },
+    { id: 'social', label: 'Social', color: 'bg-green-500' },
+    { id: 'political', label: 'Political', color: 'bg-purple-500' },
+    { id: 'economic', label: 'Economic', color: 'bg-amber-500' },
   ];
 
   const impactTypes: ImpactType[] = [
-    { id: "economy", label: "Economic Impact", color: "bg-emerald-500" },
-    { id: "society", label: "Social Impact", color: "bg-indigo-500" },
-    { id: "technology", label: "Technological Impact", color: "bg-rose-500" },
-    { id: "education", label: "Educational Impact", color: "bg-teal-500" },
-    { id: "health", label: "Health Impact", color: "bg-orange-500" },
+    { id: 'economy', label: 'Economic Impact', color: 'bg-emerald-500' },
+    { id: 'society', label: 'Social Impact', color: 'bg-indigo-500' },
+    { id: 'technology', label: 'Technological Impact', color: 'bg-rose-500' },
+    { id: 'education', label: 'Educational Impact', color: 'bg-teal-500' },
+    { id: 'health', label: 'Health Impact', color: 'bg-orange-500' },
   ];
 
-  const paradoxes = useMemo(() => detectParadoxes(branches.get(activeBranch) || historicalEvents), [branches, activeBranch]);
+  const paradoxes = useMemo(
+    () => detectParadoxes(branches.get(activeBranch) || historicalEvents),
+    [branches, activeBranch]
+  );
 
-  // Filter events based on category and impact
   const getFilteredEvents = useCallback(() => {
     const events = branches.get(activeBranch) || historicalEvents;
     return events.filter((event) => {
@@ -196,44 +185,46 @@ const AdvancedTimeline: React.FC = () => {
     });
   }, [filterCategory, filterImpact, branches, activeBranch]);
 
-  // Handle branching
   const createBranch = () => {
     const newBranchId = `branch-${Date.now()}`;
     setBranches((prev) => new Map(prev).set(newBranchId, [...(branches.get(activeBranch) || historicalEvents)]));
     setActiveBranch(newBranchId);
   };
 
-  // Handle event hover for connections
   const handleEventHover = (event: HistoricalEvent | null) => {
     setHoveredEvent(event);
-    if (event?.effects) {
-      const connections = event.effects.map((effectId) => {
-        const effectEvent = historicalEvents.find((e) => e.id === effectId);
-        return effectEvent ? { from: event.year, to: effectEvent.year, type: "effect" } : null;
-      }).filter(Boolean) as { from: number; to: number; type: string }[];
+    if (event) {
+      const connections: TimelineConnection[] = [];
+      if (event.effects) {
+        connections.push(
+          ...event.effects.map((effectId) => {
+            const effectEvent = historicalEvents.find((e) => e.id === effectId);
+            return effectEvent ? { from: event.year, to: effectEvent.year, type: 'effect' } : null;
+          }).filter(Boolean) as TimelineConnection[]
+        );
+      }
+      if (event.causedBy) {
+        connections.push(
+          ...event.causedBy.map((causeId) => {
+            const causeEvent = historicalEvents.find((e) => e.id === causeId);
+            return causeEvent ? { from: causeEvent.year, to: event.year, type: 'dependency' } : null;
+          }).filter(Boolean) as TimelineConnection[]
+        );
+      }
       setHighlightedConnections(connections);
     } else {
       setHighlightedConnections([]);
     }
   };
 
-  // Render SVG connections
-  const renderConnections = () => (
-    <svg className="absolute inset-0 pointer-events-none" style={{ height: "100px", zIndex: 0 }}>
-      {highlightedConnections.map((conn, i) => (
-        <path
-          key={i}
-          d={`M${(conn.from - 1800) * 4},${80} Q${((conn.from + conn.to) / 2 - 1800) * 4},${20} ${(conn.to - 1800) * 4},${80}`}
-          fill="none"
-          stroke="rgba(59, 130, 246, 0.5)"
-          strokeWidth="2"
-          strokeDasharray="5,5"
-        />
-      ))}
-    </svg>
-  );
+  const handleCategoryToggle = (categoryId: string) => {
+    setFilterCategory((prev) => (prev === categoryId ? null : categoryId));
+  };
 
-  // Render individual event markers
+  const handleImpactToggle = (impactId: string) => {
+    setFilterImpact((prev) => (prev === impactId ? null : impactId));
+  };
+
   const renderEventMarker = (event: HistoricalEvent) => {
     const category = categories.find((c) => c.id === event.category);
     return (
@@ -250,7 +241,7 @@ const AdvancedTimeline: React.FC = () => {
         aria-label={`Event: ${event.event} in ${event.year}`}
       >
         <div className="relative">
-          <div className={`w-2 h-8 ${category?.color || "bg-gray-500"} mx-auto transition-all hover:h-10`} />
+          <div className={cn(`w-2 h-8 ${category?.color || 'bg-gray-500'} mx-auto transition-all hover:h-10`)} />
           {hoveredEvent?.id === event.id && (
             <div
               className="absolute bottom-full mb-1 w-48 -left-24 bg-white dark:bg-gray-800 p-2 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 text-sm transition-opacity duration-200"
@@ -263,11 +254,12 @@ const AdvancedTimeline: React.FC = () => {
                   <div key={metric} className="flex items-center gap-2">
                     <span className="capitalize text-xs w-20 text-gray-700 dark:text-gray-200">{metric}:</span>
                     <div
-                      className={`text-xs font-medium ${
-                        value > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                      }`}
+                      className={cn(
+                        'text-xs font-medium',
+                        value > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                      )}
                     >
-                      {value > 0 ? "+" : ""}{value}%
+                      {value > 0 ? '+' : ''}{value}%
                     </div>
                   </div>
                 ))}
@@ -279,7 +271,6 @@ const AdvancedTimeline: React.FC = () => {
     );
   };
 
-  // Render the timeline
   const renderTimeline = () => {
     const timelineRange = Array.from({ length: 50 }, (_, i) => 1800 + i);
     const filteredEvents = getFilteredEvents();
@@ -290,22 +281,27 @@ const AdvancedTimeline: React.FC = () => {
         role="region"
         aria-label="Historical Timeline"
       >
-        {renderConnections()}
+        <TimelineConnections
+          connections={highlightedConnections}
+          containerWidth={50 * 4} // 50 years * 4px per year
+          containerHeight={100}
+          baseYear={1800}
+        />
         <div className="h-48 relative">
           {timelineRange.map((year) => (
             <div
               key={year}
-              className={`inline-block mx-1 h-16 w-2 cursor-pointer transition-all ${
-                year === currentYear
-                  ? "bg-blue-500 dark:bg-blue-400"
-                  : "bg-gray-300 dark:bg-gray-700"
-              } hover:bg-blue-300 dark:hover:bg-blue-500`}
+              className={cn(
+                'inline-block mx-1 h-16 w-2 cursor-pointer transition-all',
+                year === currentYear ? 'bg-blue-500 dark:bg-blue-400' : 'bg-gray-300 dark:bg-gray-700',
+                'hover:bg-blue-300 dark:hover:bg-blue-500'
+              )}
               onClick={() => setCurrentYear(year)}
-              onKeyPress={(e) => e.key === "Enter" && setCurrentYear(year)}
+              onKeyPress={(e) => e.key === 'Enter' && setCurrentYear(year)}
               tabIndex={0}
               role="button"
               aria-label={`Jump to year ${year}`}
-              aria-current={year === currentYear ? "true" : "false"}
+              aria-current={year === currentYear ? 'true' : 'false'}
             />
           ))}
           {filteredEvents.map(renderEventMarker)}
@@ -319,42 +315,10 @@ const AdvancedTimeline: React.FC = () => {
     );
   };
 
-  // Render effects dashboard
-  const renderEffects = () => (
-    <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-      <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Timeline Effects</h3>
-      <div className="space-y-4">
-        {Object.entries(effects).map(([metric, value]) => (
-          <div key={metric} className="flex items-center gap-2">
-            <span className="capitalize w-24 text-gray-700 dark:text-gray-200">{metric}</span>
-            <div className="flex-1 bg-gray-200 dark:bg-gray-700 h-4 rounded-full relative overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${
-                  value > 100 ? "bg-green-500 dark:bg-green-400" : "bg-red-500 dark:bg-red-400"
-                }`}
-                style={{ width: `${Math.min(Math.max(value, 0), 200)}%` }}
-                role="progressbar"
-                aria-valuenow={value}
-                aria-valuemin={0}
-                aria-valuemax={200}
-                aria-label={`${metric} effect: ${value.toFixed(1)}%`}
-              >
-                <span className="absolute inset-0 flex items-center justify-center text-xs text-white dark:text-gray-900">
-                  {value.toFixed(1)}%
-                </span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  // Render filters and controls
   const renderControls = () => (
     <div className="flex flex-wrap gap-4 mb-4">
       <select
-        value={filterCategory || ""}
+        value={filterCategory || ''}
         onChange={(e) => setFilterCategory(e.target.value || null)}
         className="p-2 border rounded dark:bg-gray-800 dark:text-white dark:border-gray-700"
         aria-label="Filter by category"
@@ -367,7 +331,7 @@ const AdvancedTimeline: React.FC = () => {
         ))}
       </select>
       <select
-        value={filterImpact || ""}
+        value={filterImpact || ''}
         onChange={(e) => setFilterImpact(e.target.value || null)}
         className="p-2 border rounded dark:bg-gray-800 dark:text-white dark:border-gray-700"
         aria-label="Filter by impact type"
@@ -387,7 +351,7 @@ const AdvancedTimeline: React.FC = () => {
       >
         {Array.from(branches.keys()).map((branchId) => (
           <option key={branchId} value={branchId}>
-            {branchId === "main" ? "Main Timeline" : branchId}
+            {branchId === 'main' ? 'Main Timeline' : branchId}
           </option>
         ))}
       </select>
@@ -414,11 +378,18 @@ const AdvancedTimeline: React.FC = () => {
         </div>
       )}
       <div className="text-2xl font-bold text-gray-900 dark:text-white mb-4" aria-live="polite">
-        {currentYear} - {activeBranch === "main" ? "Main Timeline" : activeBranch}
+        {currentYear} - {activeBranch === 'main' ? 'Main Timeline' : activeBranch}
       </div>
       {renderControls()}
       {renderTimeline()}
-      {renderEffects()}
+      <EffectsPanel effects={effects} year={currentYear} />
+      <TimelineLegend
+        filteredEvents={getFilteredEvents()}
+        categories={categories}
+        impactTypes={impactTypes}
+        onCategoryToggle={handleCategoryToggle}
+        onImpactToggle={handleImpactToggle}
+      />
     </div>
   );
 };
