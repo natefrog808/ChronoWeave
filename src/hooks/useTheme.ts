@@ -1,11 +1,12 @@
-// Save as: src/hooks/useTheme.ts
+// src/hooks/useTheme.ts
+
 import { useState, useEffect, useCallback } from 'react';
-import { Theme } from '@/types/components';
 
-type ExtendedTheme = 'light' | 'dark' | 'system' | 'past' | 'future' | 'paradox';
+// Theme type definition
+export type Theme = 'light' | 'dark' | 'system' | 'past' | 'future' | 'paradox';
 
-// Custom theme definitions with CSS variables
-const themeStyles: Record<ExtendedTheme, Record<string, string>> = {
+// Theme styles configuration
+const themeStyles: Record<Theme, Record<string, string>> = {
   light: {
     '--background': '#ffffff',
     '--foreground': '#1f2937',
@@ -24,7 +25,7 @@ const themeStyles: Record<ExtendedTheme, Record<string, string>> = {
     '--border': '#4b5563',
     '--transition-duration': '300ms',
   },
-  system: {}, // Handled dynamically below
+  system: {}, // Handled dynamically
   past: {
     '--background': '#fefce8',
     '--foreground': '#451a03',
@@ -55,11 +56,11 @@ const themeStyles: Record<ExtendedTheme, Record<string, string>> = {
 };
 
 export const useTheme = () => {
-  const [theme, setTheme] = useState<ExtendedTheme>('system');
+  const [theme, setTheme] = useState<Theme>('system');
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // Apply theme styles to document
-  const applyTheme = useCallback((selectedTheme: ExtendedTheme) => {
+  // Apply theme styles
+  const applyTheme = useCallback((selectedTheme: Theme) => {
     const root = document.documentElement;
     const styles = themeStyles[selectedTheme] || {};
 
@@ -76,29 +77,32 @@ export const useTheme = () => {
       root.classList.toggle('dark', selectedTheme === 'dark' || selectedTheme === 'future' || selectedTheme === 'paradox');
     }
 
-    // Announce theme change for accessibility
-    const liveRegion = document.getElementById('theme-announcer');
-    if (liveRegion) {
-      liveRegion.textContent = `Theme changed to ${selectedTheme}`;
-    } else {
-      const newLiveRegion = document.createElement('div');
-      newLiveRegion.id = 'theme-announcer';
-      newLiveRegion.setAttribute('aria-live', 'polite');
-      newLiveRegion.setAttribute('class', 'sr-only');
-      newLiveRegion.textContent = `Theme changed to ${selectedTheme}`;
-      document.body.appendChild(newLiveRegion);
-    }
+    // Accessibility announcement
+    const announceThemeChange = (themeName: string) => {
+      const liveRegion = document.getElementById('theme-announcer') || (() => {
+        const region = document.createElement('div');
+        region.id = 'theme-announcer';
+        region.setAttribute('aria-live', 'polite');
+        region.setAttribute('class', 'sr-only');
+        document.body.appendChild(region);
+        return region;
+      })();
+      liveRegion.textContent = `Theme changed to ${themeName}`;
+    };
+
+    announceThemeChange(selectedTheme);
   }, []);
 
-  // Initialize theme
+  // Initialize theme on mount
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as ExtendedTheme | null;
+    const savedTheme = localStorage.getItem('theme') as Theme | null;
     const initialTheme = savedTheme || 'system';
     setTheme(initialTheme);
     applyTheme(initialTheme);
 
+    // Handle system theme changes
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleSystemChange = () => {
+    const handleSystemThemeChange = () => {
       if (theme === 'system') {
         setIsTransitioning(true);
         applyTheme('system');
@@ -106,57 +110,20 @@ export const useTheme = () => {
       }
     };
 
-    mediaQuery.addEventListener('change', handleSystemChange);
-    return () => mediaQuery.removeEventListener('change', handleSystemChange);
+    mediaQuery.addEventListener('change', handleSystemThemeChange);
+    return () => mediaQuery.removeEventListener('change', handleSystemThemeChange);
   }, [applyTheme, theme]);
 
-  // Update theme
-  const updateTheme = useCallback(
-    (newTheme: ExtendedTheme) => {
-      setIsTransitioning(true);
-      setTheme(newTheme);
-      localStorage.setItem('theme', newTheme);
-      applyTheme(newTheme);
-      setTimeout(() => setIsTransitioning(false), 300); // Match transition duration
-    },
-    [applyTheme]
-  );
+  // Theme update handler
+  const updateTheme = useCallback((newTheme: Theme) => {
+    setIsTransitioning(true);
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    applyTheme(newTheme);
+    setTimeout(() => setIsTransitioning(false), 300);
+  }, [applyTheme]);
 
   return { theme, updateTheme, isTransitioning };
 };
 
-// Add to globals.css for smooth transitions
-const additionalStyles = `
-  :root {
-    --background: #ffffff;
-    --foreground: #1f2937;
-    --card: #f9fafb;
-    --card-foreground: #1f2937;
-    --primary: #3b82f6;
-    --border: #e5e7eb;
-    --transition-duration: 300ms;
-  }
-  .dark {
-    --background: #1f2937;
-    --foreground: #f9fafb;
-    --card: #374151;
-    --card-foreground: #f9fafb;
-    --primary: #60a5fa;
-    --border: #4b5563;
-  }
-  html {
-    transition: background-color var(--transition-duration) ease, color var(--transition-duration) ease;
-    background-color: var(--background);
-    color: var(--foreground);
-  }
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    border: 0;
-  }
-`;
+export default useTheme;
