@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { TimelineEffects } from '@/types/timeline';
-import { cn } from '@/lib/utils'; // Assuming you have a utility for classNames
+import { cn } from '@/lib/utils';
 
 // Define types
 interface EffectHistory {
@@ -12,16 +12,15 @@ interface EffectHistory {
 
 interface EffectsPanelProps {
   effects: TimelineEffects;
-  year: number; // Current year for context
-  onMetricSelect?: (metric: string) => void; // Callback for drilling into a metric
+  year: number;
+  onMetricSelect?: (metric: string) => void;
 }
 
 const METRIC_THRESHOLDS = {
-  warning: 50,   // Below this, show a warning
-  critical: 150, // Above this, show a critical alert
+  warning: 50,
+  critical: 150,
 };
 
-// Mini graph component for historical trend
 const TrendGraph: React.FC<{
   history: EffectHistory[];
   color: string;
@@ -55,9 +54,9 @@ export const EffectsPanel: React.FC<EffectsPanelProps> = ({ effects, year, onMet
     }), {})
   );
   const [isAnimating, setIsAnimating] = useState(false);
+  const [hoveredMetric, setHoveredMetric] = useState<string | null>(null);
   const prevEffectsRef = useRef<TimelineEffects>(effects);
 
-  // Update history when effects change
   useEffect(() => {
     const changed = Object.keys(effects).some(
       (metric) => effects[metric] !== prevEffectsRef.current[metric]
@@ -70,10 +69,10 @@ export const EffectsPanel: React.FC<EffectsPanelProps> = ({ effects, year, onMet
           [metric]: [
             ...(prev[metric] || []),
             { timestamp: year, value: effects[metric] },
-          ].slice(-10), // Keep last 10 entries for trend
+          ].slice(-10),
         }), {})
       );
-      const timeout = setTimeout(() => setIsAnimating(false), 300); // Animation duration
+      const timeout = setTimeout(() => setIsAnimating(false), 300);
       prevEffectsRef.current = { ...effects };
       return () => clearTimeout(timeout);
     }
@@ -121,13 +120,13 @@ export const EffectsPanel: React.FC<EffectsPanelProps> = ({ effects, year, onMet
               aria-label={`View details for ${metric}`}
               onClick={() => onMetricSelect?.(metric)}
               onKeyPress={(e) => e.key === 'Enter' && onMetricSelect?.(metric)}
+              onMouseEnter={() => setHoveredMetric(metric)}
+              onMouseLeave={() => setHoveredMetric(null)}
             >
-              {/* Metric Label */}
               <span className="capitalize w-24 text-gray-700 dark:text-gray-200 font-medium">
                 {metric}
               </span>
 
-              {/* Progress Bar */}
               <div className="flex-1 bg-gray-200 dark:bg-gray-700 h-6 rounded-full relative overflow-hidden">
                 <div
                   className={cn(
@@ -148,39 +147,37 @@ export const EffectsPanel: React.FC<EffectsPanelProps> = ({ effects, year, onMet
                 </div>
               </div>
 
-              {/* Trend Graph */}
               <TrendGraph
                 history={history[metric] || []}
                 color={trendColor}
                 metric={metric}
               />
 
-              {/* Tooltip */}
-              <div
-                className={cn(
-                  'absolute top-full left-24 mt-2 w-64 p-3 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 text-sm opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-200 pointer-events-none z-10'
-                )}
-                role="tooltip"
-                aria-hidden={!hovered}
-              >
-                <div className="font-medium text-gray-900 dark:text-white capitalize">
-                  {metric} Status
+              {hoveredMetric === metric && (
+                <div
+                  className={cn(
+                    'absolute top-full left-24 mt-2 w-64 p-3 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 text-sm z-10'
+                  )}
+                  role="tooltip"
+                >
+                  <div className="font-medium text-gray-900 dark:text-white capitalize">
+                    {metric} Status
+                  </div>
+                  <div className="text-gray-600 dark:text-gray-300 mt-1">
+                    {getStatusMessage(metric, value)}
+                  </div>
+                  <div className="mt-2">
+                    <span className="text-gray-500 dark:text-gray-400 text-xs">
+                      Trend over last {history[metric]?.length || 0} updates
+                    </span>
+                  </div>
                 </div>
-                <div className="text-gray-600 dark:text-gray-300 mt-1">
-                  {getStatusMessage(metric, value)}
-                </div>
-                <div className="mt-2">
-                  <span className="text-gray-500 dark:text-gray-400 text-xs">
-                    Trend over last {history[metric]?.length || 0} updates
-                  </span>
-                </div>
-              </div>
+              )}
             </div>
           );
         })}
       </div>
 
-      {/* Temporal Anomalies Warning */}
       {Object.entries(effects).some(
         ([_, value]) => value <= METRIC_THRESHOLDS.warning || value >= METRIC_THRESHOLDS.critical
       ) && (
@@ -195,13 +192,4 @@ export const EffectsPanel: React.FC<EffectsPanelProps> = ({ effects, year, onMet
   );
 };
 
-// Utility styles in Tailwind (add to your globals.css if not present)
-const additionalStyles = `
-  @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  .animate-fade-in {
-    animation: fade-in 0.5s ease-in-out;
-  }
-`;
+export default EffectsPanel;
