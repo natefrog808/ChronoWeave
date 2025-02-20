@@ -1,9 +1,9 @@
-// Save as: src/components/timeline/TimelineConnections.tsx
+// src/components/timeline/TimelineConnections.tsx
 
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { TimelineConnection } from '@/types/timeline';
-import { cn, scaleYearToPixels } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 interface TimelineConnectionsProps {
   connections: TimelineConnection[];
@@ -13,6 +13,18 @@ interface TimelineConnectionsProps {
   className?: string;
 }
 
+// Calculate start and end points for a curved path
+const calculateCurvedPath = (
+  startX: number,
+  endX: number,
+  height: number,
+  type: TimelineConnection['type']
+) => {
+  const midY = height / 2;
+  const controlY = type === 'paradox' ? midY * 1.5 : midY;
+  return `M ${startX} 0 C ${startX} ${controlY}, ${endX} ${controlY}, ${endX} ${height}`;
+};
+
 export const TimelineConnections: React.FC<TimelineConnectionsProps> = ({
   connections,
   containerWidth,
@@ -20,22 +32,13 @@ export const TimelineConnections: React.FC<TimelineConnectionsProps> = ({
   baseYear = 1800,
   className
 }) => {
-  // Memoize path calculations for performance
   const paths = useMemo(() => {
     return connections.map((connection, index) => {
-      // Calculate start and end points
-      const startX = scaleYearToPixels(connection.from, baseYear);
-      const endX = scaleYearToPixels(connection.to, baseYear);
-      const midY = containerHeight / 2;
-      
-      // Control points for smooth curve
-      const controlY = connection.type === 'paradox' ? midY * 1.5 : midY;
-      const curve = `M ${startX} 0 
-                     C ${startX} ${controlY}, 
-                       ${endX} ${controlY}, 
-                       ${endX} ${containerHeight}`;
+      // Calculate start and end points based on years
+      const startX = ((connection.from - baseYear) * containerWidth) / 50;
+      const endX = ((connection.to - baseYear) * containerWidth) / 50;
 
-      // Define connection styles based on type
+      // Define styles for different connection types
       const styles = {
         paradox: {
           stroke: '#ef4444', // red
@@ -60,10 +63,11 @@ export const TimelineConnections: React.FC<TimelineConnectionsProps> = ({
       };
 
       const style = styles[connection.type] || styles.effect;
+      const path = calculateCurvedPath(startX, endX, containerHeight, connection.type);
 
       return {
         id: `connection-${index}`,
-        path: curve,
+        path,
         ...style,
         strength: connection.strength || 0.5,
         direction: connection.direction || 'forward',
@@ -82,7 +86,7 @@ export const TimelineConnections: React.FC<TimelineConnectionsProps> = ({
       aria-hidden="true"
     >
       <defs>
-        {/* Arrow marker definitions */}
+        {/* Forward arrow marker */}
         <marker
           id="arrow-forward"
           viewBox="0 0 10 10"
@@ -94,6 +98,7 @@ export const TimelineConnections: React.FC<TimelineConnectionsProps> = ({
         >
           <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
         </marker>
+        {/* Backward arrow marker */}
         <marker
           id="arrow-backward"
           viewBox="0 0 10 10"
@@ -107,9 +112,9 @@ export const TimelineConnections: React.FC<TimelineConnectionsProps> = ({
         </marker>
       </defs>
 
-      {/* Render connection paths */}
       {paths.map((pathData) => (
         <g key={pathData.id} className="connection-group">
+          {/* Connection path */}
           <motion.path
             d={pathData.path}
             stroke={pathData.stroke}
@@ -124,23 +129,44 @@ export const TimelineConnections: React.FC<TimelineConnectionsProps> = ({
             transition={{ duration: 0.8, ease: "easeInOut" }}
           />
           
-          {/* Optional connection label */}
+          {/* Connection label */}
           {pathData.label && (
             <motion.text
               x="50%"
               y="50%"
               textAnchor="middle"
               fill="currentColor"
-              className="text-xs"
+              className="text-xs font-medium pointer-events-none"
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.8 }}
               transition={{ delay: 0.4 }}
             >
-              {pathData.label}
+              <textPath href={`#${pathData.id}`} startOffset="50%">
+                {pathData.label}
+              </textPath>
             </motion.text>
           )}
+
+          {/* Hover effect highlight */}
+          <motion.path
+            d={pathData.path}
+            stroke="transparent"
+            strokeWidth={Math.max(10, pathData.strength * 10)}
+            fill="none"
+            className="cursor-pointer"
+            onMouseEnter={() => {
+              const path = document.querySelector(`#${pathData.id}`);
+              if (path) path.classList.add('connection-hover');
+            }}
+            onMouseLeave={() => {
+              const path = document.querySelector(`#${pathData.id}`);
+              if (path) path.classList.remove('connection-hover');
+            }}
+          />
         </g>
       ))}
     </svg>
   );
 };
+
+export default TimelineConnections;
