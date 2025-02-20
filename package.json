@@ -2,9 +2,7 @@
   "name": "chronoweave",
   "version": "1.0.0",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
+    "dev": "next dev --turbopack"
   },
   "dependencies": {
     "next": "^14.0.0",
