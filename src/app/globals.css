@@ -34,6 +34,7 @@
     --connection-hover-width: 4px;
     --connection-base-width: 2px;
     --connection-text-size: 0.75rem;
+    --transition-duration: 300ms;
   }
  
   .dark {
@@ -68,6 +69,26 @@
   }
 }
 
+/* Theme transitions */
+html {
+  transition: background-color var(--transition-duration) ease,
+              color var(--transition-duration) ease;
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
 /* Timeline animations */
 @keyframes fade-in {
   from { opacity: 0; }
@@ -85,7 +106,18 @@
   100% { transform: scale(1); }
 }
 
-/* Timeline utility classes */
+@keyframes temporal-glow {
+  0% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.3); }
+  50% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
+  100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.3); }
+}
+
+@keyframes ripple {
+  0% { transform: scale(0); opacity: 1; }
+  100% { transform: scale(4); opacity: 0; }
+}
+
+/* Animation classes */
 .animate-fade-in {
   animation: fade-in 0.3s ease-in-out;
 }
@@ -98,6 +130,15 @@
   animation: pulse 2s infinite;
 }
 
+.animate-temporal-glow {
+  animation: temporal-glow 2s infinite ease-in-out;
+}
+
+.animate-ripple {
+  animation: ripple 0.6s ease-out;
+}
+
+/* Timeline elements */
 .h-event-marker {
   height: var(--event-marker-height);
 }
@@ -106,12 +147,12 @@
   height: calc(var(--event-marker-height) * 1.5);
 }
 
-/* Timeline theme transitions */
+/* Timeline container */
 .timeline-container * {
   @apply transition-colors duration-200;
 }
 
-/* Timeline scrollbar styling */
+/* Scrollbar styling */
 .timeline-scroll {
   scrollbar-width: thin;
   scrollbar-color: theme('colors.gray.400') theme('colors.gray.200');
@@ -129,7 +170,7 @@
   @apply bg-gray-400 dark:bg-gray-500 rounded-full hover:bg-gray-500 dark:hover:bg-gray-400;
 }
 
-/* Timeline connection styles */
+/* Connection styles */
 .connection-line {
   @apply transition-opacity duration-300;
   opacity: var(--connection-opacity);
@@ -139,7 +180,6 @@
   --connection-opacity: 1;
 }
 
-/* Connection group styles */
 .connection-group {
   transition: all 0.3s ease;
 }
@@ -165,7 +205,7 @@
   stroke-linejoin: round;
 }
 
-/* Connection type styles */
+/* Connection types */
 .connection-effect {
   @apply text-blue-500 dark:text-blue-400;
 }
@@ -182,7 +222,7 @@
   @apply text-gray-500 dark:text-gray-400;
 }
 
-/* Timeline animation modifiers */
+/* Timeline modifiers */
 .timeline-animated * {
   @apply transition-all duration-300;
 }
@@ -191,8 +231,23 @@
   @apply cursor-pointer;
 }
 
-/* Connection label positioning */
+/* Connection label */
 .connection-label {
   dominant-baseline: middle;
   text-anchor: middle;
+}
+
+/* Card animations */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Focus styles */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
 }
