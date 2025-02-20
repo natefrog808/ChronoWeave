@@ -1,156 +1,146 @@
 // Save as: src/components/timeline/TimelineConnections.tsx
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { TimelineConnection } from '@/types/timeline';
-import { cn } from '@/lib/utils';
+import { cn, scaleYearToPixels } from '@/lib/utils';
 
 interface TimelineConnectionsProps {
   connections: TimelineConnection[];
-  containerWidth: number; // Width of the timeline container in pixels
-  containerHeight?: number; // Optional height for vertical scaling
-  baseYear?: number; // Starting year (default 1800)
+  containerWidth: number;
+  containerHeight?: number;
+  baseYear?: number;
+  className?: string;
 }
-
-interface ConnectionStyle {
-  stroke: string;
-  strokeDasharray?: string;
-  label: string;
-}
-
-const CONNECTION_STYLES: Record<string, ConnectionStyle> = {
-  effect: {
-    stroke: 'rgba(59, 130, 246, 0.7)', // Blue for effects
-    strokeDasharray: '5,5',
-    label: 'Cause → Effect',
-  },
-  dependency: {
-    stroke: 'rgba(147, 51, 234, 0.7)', // Purple for dependencies
-    strokeDasharray: '2,2',
-    label: 'Dependency Link',
-  },
-  paradox: {
-    stroke: 'rgba(239, 68, 68, 0.7)', // Red for paradoxes
-    strokeDasharray: '10,5',
-    label: 'Paradox Warning',
-  },
-};
 
 export const TimelineConnections: React.FC<TimelineConnectionsProps> = ({
   connections,
   containerWidth,
   containerHeight = 100,
   baseYear = 1800,
+  className
 }) => {
-  const [hoveredConnection, setHoveredConnection] = useState<number | null>(null);
-
   // Memoize path calculations for performance
-  const connectionPaths = useMemo(() => {
+  const paths = useMemo(() => {
     return connections.map((connection, index) => {
-      const startX = ((connection.from - baseYear) / 50) * containerWidth; // Scale to 50-year span
-      const endX = ((connection.to - baseYear) / 50) * containerWidth;
-      const midX = (startX + endX) / 2;
-      const controlY = containerHeight * 0.2; // Curve height (20% of container height)
-      const style = CONNECTION_STYLES[connection.type] || CONNECTION_STYLES.effect;
+      // Calculate start and end points
+      const startX = scaleYearToPixels(connection.from, baseYear);
+      const endX = scaleYearToPixels(connection.to, baseYear);
+      const midY = containerHeight / 2;
+      
+      // Control points for smooth curve
+      const controlY = connection.type === 'paradox' ? midY * 1.5 : midY;
+      const curve = `M ${startX} 0 
+                     C ${startX} ${controlY}, 
+                       ${endX} ${controlY}, 
+                       ${endX} ${containerHeight}`;
 
-      // Quadratic Bézier curve: M (start) Q (control point) (end)
-      const pathD = `M ${startX} ${containerHeight * 0.8} Q ${midX} ${controlY} ${endX} ${containerHeight * 0.8}`;
+      // Define connection styles based on type
+      const styles = {
+        paradox: {
+          stroke: '#ef4444', // red
+          dasharray: '5,5',
+          opacity: 0.8
+        },
+        effect: {
+          stroke: '#3b82f6', // blue
+          dasharray: 'none',
+          opacity: 0.6
+        },
+        dependency: {
+          stroke: '#8b5cf6', // purple
+          dasharray: '3,3',
+          opacity: 0.6
+        },
+        indirect: {
+          stroke: '#6b7280', // gray
+          dasharray: '2,4',
+          opacity: 0.4
+        }
+      };
 
-      return { id: index, pathD, style, connection, startX, endX };
+      const style = styles[connection.type] || styles.effect;
+
+      return {
+        id: `connection-${index}`,
+        path: curve,
+        ...style,
+        strength: connection.strength || 0.5,
+        direction: connection.direction || 'forward',
+        label: connection.label
+      };
     });
   }, [connections, containerWidth, containerHeight, baseYear]);
 
   return (
     <svg
-      className="absolute inset-0 pointer-events-none"
+      className={cn('absolute top-0 left-0 pointer-events-none', className)}
       width={containerWidth}
       height={containerHeight}
-      style={{ zIndex: 10 }}
-      role="img"
-      aria-label="Timeline connections between historical events"
+      xmlns="http://www.w3.org/2000/svg"
+      role="presentation"
+      aria-hidden="true"
     >
       <defs>
-        {/* Gradient for animation */}
-        <linearGradient id="pulse-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="rgba(255, 255, 255, 0.2)" />
-          <stop offset="50%" stopColor="rgba(255, 255, 255, 0.8)" />
-          <stop offset="100%" stopColor="rgba(255, 255, 255, 0.2)" />
-        </linearGradient>
+        {/* Arrow marker definitions */}
+        <marker
+          id="arrow-forward"
+          viewBox="0 0 10 10"
+          refX="5"
+          refY="5"
+          markerWidth="4"
+          markerHeight="4"
+          orient="auto"
+        >
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
+        </marker>
+        <marker
+          id="arrow-backward"
+          viewBox="0 0 10 10"
+          refX="5"
+          refY="5"
+          markerWidth="4"
+          markerHeight="4"
+          orient="auto-start-reverse"
+        >
+          <path d="M 0 5 L 10 0 L 10 10 z" fill="currentColor" />
+        </marker>
       </defs>
 
-      {connectionPaths.map(({ id, pathD, style, connection, startX, endX }) => (
-        <g
-          key={id}
-          className="pointer-events-auto"
-          onMouseEnter={() => setHoveredConnection(id)}
-          onMouseLeave={() => setHoveredConnection(null)}
-          onFocus={() => setHoveredConnection(id)}
-          onBlur={() => setHoveredConnection(null)}
-          tabIndex={0}
-          role="button"
-          aria-label={`${style.label} from ${connection.from} to ${connection.to}`}
-        >
-          {/* Connection Path */}
-          <path
-            d={pathD}
-            stroke={style.stroke}
-            strokeWidth={hoveredConnection === id ? 3 : 2}
-            strokeDasharray={style.strokeDasharray}
+      {/* Render connection paths */}
+      {paths.map((pathData) => (
+        <g key={pathData.id} className="connection-group">
+          <motion.path
+            d={pathData.path}
+            stroke={pathData.stroke}
+            strokeWidth={Math.max(1, pathData.strength * 3)}
+            strokeDasharray={pathData.dasharray}
             fill="none"
-            className={cn(
-              'transition-all duration-300',
-              hoveredConnection === id && 'animate-pulse'
-            )}
-          >
-            <animate
-              attributeName="stroke-dashoffset"
-              from="0"
-              to={style.strokeDasharray === '5,5' ? '-10' : '-4'}
-              dur="2s"
-              repeatCount="indefinite"
-            />
-          </path>
-
-          {/* Tooltip */}
-          {hoveredConnection === id && (
-            <foreignObject
-              x={(startX + endX) / 2 - 75}
-              y={controlY - 40}
-              width="150"
-              height="100"
-              className="pointer-events-none"
+            opacity={pathData.opacity}
+            markerEnd={pathData.direction !== 'backward' ? 'url(#arrow-forward)' : undefined}
+            markerStart={pathData.direction !== 'forward' ? 'url(#arrow-backward)' : undefined}
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: pathData.opacity }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
+          />
+          
+          {/* Optional connection label */}
+          {pathData.label && (
+            <motion.text
+              x="50%"
+              y="50%"
+              textAnchor="middle"
+              fill="currentColor"
+              className="text-xs"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.8 }}
+              transition={{ delay: 0.4 }}
             >
-              <div
-                className={cn(
-                  'bg-white dark:bg-gray-900 p-2 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-white animate-fade-in'
-                )}
-                role="tooltip"
-                aria-hidden={hoveredConnection !== id}
-              >
-                <div className="font-medium">{style.label}</div>
-                <div className="text-gray-600 dark:text-gray-300">
-                  {connection.from} → {connection.to}
-                </div>
-                <div className="text-xs mt-1">
-                  {connection.type === 'paradox'
-                    ? 'Potential timeline instability'
-                    : 'Influence strength: Moderate'}
-                </div>
-              </div>
-            </foreignObject>
+              {pathData.label}
+            </motion.text>
           )}
         </g>
       ))}
     </svg>
   );
 };
-
-// Add to your globals.css if not present
-const additionalStyles = `
-  @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  .animate-fade-in {
-    animation: fade-in 0.3s ease-in-out;
-  }
-`;
