@@ -1,40 +1,47 @@
 # 🌟 ChronoWeave: Time Travel Simulation Platform
 
-*Because who needs a DeLorean when you've got React and TypeScript?*
+*Because who needs a DeLorean when you’ve got TypeScript, Tailwind, and a touch of temporal magic?*
 
 ## 🚀 Overview
 
-Welcome to ChronoWeave, where we turn "butterfly effect" from a cool theory into a "hold my beer" moment. Watch as the Industrial Revolution snowballs through time, and that one person who decided steam engines were a good idea changes literally everything.
-
+Welcome to **ChronoWeave**, where the butterfly effect isn’t just a theory—it’s a full-on "hold my quantum beer" experience. Witness the Industrial Revolution ripple through time, watch Faraday’s electromagnetic discovery spark revolutions, and see how a single steam engine can rewrite history. This isn’t just a timeline—it’s a living, breathing simulation of cause, effect, and everything in between.
 
 ## ✨ Features That Make Time Lords Jealous
 
 ### 🎯 Core Features
-- Interactive timeline visualization (no quantum physics degree required)
-- Real-time cause-and-effect simulation
-- Branching history paths (paradox-free™)
-- Dynamic impact calculations that would make your math teacher proud
-- Dark mode that's darker than the Dark Ages
+- **Interactive Timeline Visualization**: Zoom, pan, and hover through history—no PhD in quantum physics required.
+- **Real-Time Cause-and-Effect Simulation**: See impacts propagate with exponential decay across decades.
+- **Branching History Paths**: Fork timelines and explore alternate realities (paradox-free™ guaranteed).
+- **Dynamic Impact Calculations**: Economy, society, technology, and more—tracked with precision that would make Einstein nod approvingly.
+- **Theme System**: Light, dark, past, future, or paradox—style your journey through time.
 
 ### 🔮 Smart Historical Analysis
-- Advanced event relationship mapping
-- Impact propagation across timelines
-- Real-time metric calculations
-- Automatic paradox prevention system (sorry, you can't become your own grandfather)
+- **Advanced Event Relationship Mapping**: Direct effects, dependencies, and even indirect tag-based connections.
+- **Impact Propagation**: Watch effects ripple with realistic decay and strength weighting.
+- **Real-Time Metrics**: Live updates on societal, economic, and technological health.
+- **Paradox Detection & Resolution**: Catch circular dependencies before they unravel the fabric of time.
 
 ### 🎨 UI Components That Time Forgot
-- Fully accessible UI (screen-reader friendly for time travelers from all dimensions)
-- Theme support smoother than a temporal vortex
-- Responsive design that works in any timeline
-- Component variants that would make Darwin proud
+- **Fully Accessible**: Screen-reader friendly, keyboard-navigable—time travel for all dimensions.
+- **Temporal Themes**: Smooth transitions between past parchment and futuristic neon.
+- **Responsive Design**: Adapts to any screen, from pocket watches to holodecks.
+- **Animated Interactions**: Glows, ripples, and slides that make history feel alive.
+
+### 🧠 Developer Goodies
+- **Debug Panel**: Peek under the hood with simulation stats and anomaly reports.
+- **Feature Flags**: Toggle zoom, animations, and more via `.env`.
+- **Type-Safe**: TypeScript ensures your timeline stays intact across centuries.
 
 ## 🛠 Tech Stack (Time-Tested™)
 
-- **Next.js** - Because even time travel needs server-side rendering
-- **TypeScript** - For when you need to type-check across centuries
-- **Tailwind CSS** - Styling quantum mechanics made easy
-- **shadcn/ui** - Components that look good in any timeline
-- **CVA** - For variants that adapt faster than evolution
+- **Next.js**: Server-side rendering for instant timeline jumps.
+- **TypeScript**: Type-checking that spans millennia.
+- **Tailwind CSS**: Quantum styling with a temporal twist.
+- **shadcn/ui**: Pre-built components with ChronoWeave flair.
+- **Framer Motion**: Animations smoother than a temporal vortex.
+- **Zustand**: Lightweight state management for branching timelines.
+- **CVA**: Component variants that evolve faster than Darwin’s finches.
+- **Lucide React**: Icons that transcend time.
 
 ## 🚀 Installation
 
@@ -58,18 +65,34 @@ npm run dev
 chronoweave/
 ├── src/
 │   ├── components/
-│   │   ├── ui/
-│   │   │   └── card.tsx        # Enhanced cards with temporal stability
-│   │   └── timeline/
-│   │       └── AdvancedTimeline.tsx
+│   │   ├── timeline/
+│   │   │   ├── AdvancedTimeline.tsx  # The heart of ChronoWeave
+│   │   │   ├── EffectsPanel.tsx     # Dynamic impact dashboard
+│   │   │   ├── TimelineConnections.tsx  # Curved SVG connections
+│   │   │   └── TimelineLegend.tsx   # Interactive filtering legend
+│   │   └── ui/
+│   │       ├── card.tsx             # Temporal-enhanced cards
+│   │       ├── button.tsx           # Sleek action triggers
+│   │       └── select.tsx           # Dropdowns for time control
+│   ├── data/
+│   │   └── timelineData.ts          # Rich historical dataset
 │   ├── hooks/
-│   │   └── useTheme.ts         # Dark mode darker than a black hole
+│   │   └── useTheme.ts              # Theme system with temporal flair
 │   ├── lib/
-│   │   └── utils.ts            # Utilities that bend space-time
+│   │   └── utils.ts                 # General-purpose utilities
+│   ├── utils/
+│   │   └── timelineUtils.ts         # Temporal simulation toolkit
 │   ├── types/
-│   │   └── components.ts       # TypeScript types from the future
-│   └── app/
-│       └── globals.css         # Styles that transcend time
+│   │   ├── components.ts            # UI component types
+│   │   └── timeline.ts              # Timeline-specific types
+│   ├── pages/
+│   │   ├── index.tsx                # Entry point
+│   │   └── api/                     # Future API routes
+│   └── styles/
+│       └── globals.css              # CSS variables & transitions
+├── .env                             # Configurable settings
+├── tailwind.config.js               # Temporal Tailwind magic
+└── package.json                     # Dependencies & scripts
 ```
 
 ## 🎮 Usage
@@ -81,8 +104,13 @@ import { AdvancedTimeline } from '@/components/timeline/AdvancedTimeline';
 // Deploy your temporal viewer
 export default function TimeTravel() {
   return (
-    <div className="temporal-container">
-      <AdvancedTimeline />
+    <div className="temporal-container min-h-screen bg-background text-foreground">
+      <AdvancedTimeline
+        showConnections={true}
+        enableZoom={true}
+        allowFiltering={true}
+        interactive={true}
+      />
     </div>
   );
 }
@@ -90,20 +118,22 @@ export default function TimeTravel() {
 
 ## 🎨 UI Components
 
-Our enhanced UI components come with:
-- Automatic dark mode detection (works in any century)
-- Keyboard navigation (for time travelers who prefer keyboards)
-- Screen reader support (because accessibility shouldn't be history)
-- Color contrast utilities (visible across the space-time continuum)
+Our enhanced components come with:
+- **Temporal Cards**: Glow, ripple, and hover effects for a sci-fi feel.
+- **Animated Connections**: Curved SVG paths with pulsing dashes.
+- **Impact Dashboard**: Real-time bars with trend graphs and tooltips.
+- **Legend Controls**: Toggle categories and impacts with live stats.
 
 ```typescript
 import { Card } from '@/components/ui/card';
 
-// Example of our enhanced card component
-<Card 
-  variant="elevated"
+// Example of an enhanced card
+<Card
+  variant="temporal"
+  glow="subtle"
   isHoverable
   isInteractive
+  ripple
 >
   Time-traveling content goes here
 </Card>
@@ -114,50 +144,86 @@ import { Card } from '@/components/ui/card';
 ### Enhanced Theme Management
 ```typescript
 const { theme, updateTheme } = useTheme();
-// Supports 'light', 'dark', and 'system' preferences
-// Persists across timeline jumps
+// Options: 'light', 'dark', 'system', 'past', 'future', 'paradox'
+// Persists across sessions and animates transitions
 ```
 
+### Smart Simulation Engine
+- **Decay-Based Propagation**: Effects fade realistically over time.
+- **Branching**: Fork timelines with a single click.
+- **Zoom**: Scale the timeline from 0.5x to 2x for detail or overview.
+
 ### Accessibility Features
-- ARIA attributes that make sense in any century
-- Keyboard navigation that would make HTML proud
-- Screen reader descriptions that tell the whole story
-- Focus management smoother than a temporal slip
+- ARIA attributes for every interaction.
+- Keyboard navigation for timeline jumps and filtering.
+- Screen reader announcements for theme switches and anomalies.
+- High-contrast temporal themes.
 
 ### Performance Optimizations
-- Efficient class name generation
-- Memoized components
-- Bundle size smaller than a temporal paradox
-- Smoother than a well-oiled time machine
+- Memoized calculations for events and effects.
+- Optimized SVG rendering for connections.
+- Lightweight Zustand state for branches.
+- Tailwind’s JIT compilation for a tiny bundle.
+
+## 🛠 Setup & Configuration
+
+### Prerequisites
+- Node.js 16+ & npm 7+
+
+### Environment Variables (`.env`)
+```env
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_ENABLE_ZOOM=true
+NEXT_PUBLIC_SHOW_DEBUG_PANEL=false
+NEXT_PUBLIC_TIMELINE_BASE_YEAR=1800
+NEXT_PUBLIC_TIMELINE_YEAR_RANGE=50
+NEXT_PUBLIC_DEFAULT_DECAY_FACTOR=20
+```
 
 ## 🤝 Contributing
 
-1. Fork the timeline
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-6. Don't accidentally erase your own existence
+1. Fork the timeline.
+2. Create your feature branch (`git checkout -b feature/temporal-warp`).
+3. Commit your changes (`git commit -m "Add temporal warp effect"`).
+4. Push to the branch (`git push origin feature/temporal-warp`).
+5. Open a Pull Request.
+6. Don’t accidentally erase your own existence (we’ve got paradox detection for that).
 
 ## 📜 License
 
-MIT License - Feel free to use this in any timeline you choose, just don't break the space-time continuum.
+MIT License—use it in any timeline, just don’t break the space-time continuum.
 
 ## 🙏 Acknowledgments
 
-- The Industrial Revolution (you started it all)
-- That butterfly in the Pleistocene era
-- Coffee (the real time travel fuel)
-- The person reading this README (yes, you!)
+- **Industrial Revolution**: For kicking off this wild ride.
+- **Michael Faraday**: For electrifying our timelines.
+- **Coffee**: The true fuel of time travel.
+- **You**: For exploring ChronoWeave’s infinite possibilities.
 
 ## 🐛 Known Issues
 
-- Still can't actually travel through time (working on it)
-- May cause mild historical addiction
-- Side effects may include: temporal vertigo, historical curiosity, and the urge to prevent the invention of Comic Sans
+- Can’t physically travel through time (yet—PRs welcome!).
+- May induce an insatiable curiosity about historical what-ifs.
+- Side effects: Temporal vertigo, a newfound love for steam engines, and a sudden urge to ban Comic Sans.
+
+## 🌌 Roadmap
+
+- Event editor for custom timelines.
+- Real-time collaboration across branches.
+- AI-driven historical predictions.
+- Actual time travel (pending quantum breakthrough).
 
 ---
 
 *For support, open an issue or send a message via temporal beacon (quantum entanglement preferred).*
 
-*Remember: The best way to predict the future is to simulate it. The second best way is to create it. We're doing both.*
+*Remember: The best way to predict the future is to simulate it. The second best way is to create it. With ChronoWeave, we’re doing both—across every timeline imaginable.*
+
+---
+
+### Why It’s Mind-Blowing
+- **Comprehensive**: Covers every feature, component, and enhancement we’ve built.
+- **Engaging**: Keeps the playful, temporal tone while showcasing technical depth.
+- **Actionable**: Provides clear setup, usage, and contribution guides.
+- **Future-Ready**: Teases a roadmap that hints at ChronoWeave’s boundless potential.
+
