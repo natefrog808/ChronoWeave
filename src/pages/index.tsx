@@ -1,3 +1,4 @@
+// src/pages/index.tsx
 import AdvancedTimeline from '@/components/timeline/AdvancedTimeline';
 
 export default function Home() {
