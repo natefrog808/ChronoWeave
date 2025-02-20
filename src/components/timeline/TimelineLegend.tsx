@@ -1,6 +1,6 @@
 // Save as: src/components/timeline/TimelineLegend.tsx
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { HistoricalEvent, Category, ImpactType } from '@/types/timeline';
 import { cn } from '@/lib/utils';
 
@@ -8,8 +8,8 @@ interface TimelineLegendProps {
   filteredEvents: HistoricalEvent[];
   categories: Category[];
   impactTypes: ImpactType[];
-  onCategoryToggle?: (categoryId: string) => void; // Callback to toggle category filter
-  onImpactToggle?: (impactId: string) => void;    // Callback to toggle impact filter
+  onCategoryToggle?: (categoryId: string) => void;
+  onImpactToggle?: (impactId: string) => void;
 }
 
 const CONNECTION_TYPES = [
@@ -27,12 +27,13 @@ export const TimelineLegend: React.FC<TimelineLegendProps> = ({
 }) => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
-  // Calculate active sets and stats
   const activeCategories = useMemo(() => new Set(filteredEvents.map((e) => e.category)), [filteredEvents]);
+  
   const activeImpacts = useMemo(
     () => new Set(filteredEvents.flatMap((e) => Object.keys(e.impact))),
     [filteredEvents]
   );
+
   const categoryStats = useMemo(
     () =>
       categories.reduce((acc, cat) => {
@@ -41,6 +42,7 @@ export const TimelineLegend: React.FC<TimelineLegendProps> = ({
       }, {} as Record<string, number>),
     [categories, filteredEvents]
   );
+
   const impactStats = useMemo(
     () =>
       impactTypes.reduce((acc, imp) => {
@@ -106,7 +108,6 @@ export const TimelineLegend: React.FC<TimelineLegendProps> = ({
               {type === 'impact' && statValue !== null && ` (${statValue.toFixed(1)}% total)`}
             </span>
 
-            {/* Tooltip */}
             {hoveredItem === item.id && (
               <div
                 className={cn(
@@ -138,15 +139,12 @@ export const TimelineLegend: React.FC<TimelineLegendProps> = ({
       role="region"
       aria-label="Timeline Legend"
     >
-      {/* Connections */}
       {renderSection('Connections', CONNECTION_TYPES, new Set(), {}, 'connection')}
 
-      {/* Categories */}
       <div className="border-l border-gray-300 dark:border-gray-600 pl-4">
         {renderSection('Event Categories', categories, activeCategories, categoryStats, 'category')}
       </div>
 
-      {/* Impact Types */}
       <div className="border-l border-gray-300 dark:border-gray-600 pl-4">
         {renderSection('Impact Types', impactTypes, activeImpacts, impactStats, 'impact')}
       </div>
@@ -154,13 +152,4 @@ export const TimelineLegend: React.FC<TimelineLegendProps> = ({
   );
 };
 
-// Add to globals.css if not present
-const additionalStyles = `
-  @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  .animate-fade-in {
-    animation: fade-in 0.3s ease-in-out;
-  }
-`;
+export default TimelineLegend;
