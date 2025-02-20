@@ -1,5 +1,3 @@
-// Save as: src/types/timeline.ts
-
 export interface HistoricalEvent {
   id: number;
   year: number;
@@ -26,7 +24,7 @@ export interface ImpactType {
 export interface TimelineConnection {
   from: number;
   to: number;
-  type: 'effect' | 'cause';
+  type: 'effect' | 'dependency' | 'paradox';
 }
 
 export interface TimelineEffects {
@@ -35,4 +33,5 @@ export interface TimelineEffects {
   technology: number;
   education: number;
   health: number;
+  [key: string]: number;
 }
